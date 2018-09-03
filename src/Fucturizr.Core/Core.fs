@@ -6,22 +6,22 @@ type Tag = string
 type Position = int * int
 
 type Size =
-| A6Landscape
-| A6Portrait
-| A5Landscape
-| A5Portrait
-| A4Landscape
-| A4Portrait
-| A3Landscape
-| A3Portrait
-| A2Landscape
-| A2Portrait
-| LetterLandscape
-| LetterPortrait
-| LegalLandscape
-| LegalPortrait
-| Slide43Landscape
-| Slide169Landscape
+| A6_Landscape
+| A6_Portrait
+| A5_Landscape
+| A5_Portrait
+| A4_Landscape
+| A4_Portrait
+| A3_Landscape
+| A3_Portrait
+| A2_Landscape
+| A2_Portrait
+| Letter_Landscape
+| Letter_Portrait
+| Legal_Landscape
+| Legal_Portrait
+| Slide43_Landscape
+| Slide169_Landscape
 
 type ColorHex = string
 

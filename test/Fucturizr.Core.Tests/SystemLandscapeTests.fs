@@ -1,98 +1,107 @@
-﻿module SystemLandscapeTests
+﻿namespace Tests
+open System
+module A =
+    
+    open System
+    open Fucturizr
+    let landscape = SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5_Landscape
+    let system name = SoftwareSystem.init name (Guid.NewGuid().ToString()) [] (0,0)
+    let person name = User.person name (Guid.NewGuid().ToString()) [] (0,0)
+module SystemLandscapeTests =
 
-open Xunit
-open Swensen.Unquote
-open Fucturizr
-open Helper
+    open Xunit
+    open Swensen.Unquote
+    open Fucturizr
+    open Helper
 
-[<Fact>]
-let ``Replace when matches predicate`` () =
-    let lst = [1;2;3;4;5]
-    let check value existing = value < existing
-    let mappingAdv predicate newValue state listElement =
-        let c = Update.define predicate newValue listElement
-        let s = (Update.isReplaced c) || state
-        let v = Update.get c
-        let r = (v, s)
-        r
+    [<Fact>]
+    let ``Replace when matches predicate`` () =
+        let lst = [1;2;3;4;5]
+        let check value existing = value < existing
+        let mappingAdv predicate newValue state listElement =
+            let c = Update.define predicate newValue listElement
+            let s = (Update.isReplaced c) || state
+            let v = Update.get c
+            let r = (v, s)
+            r
 
-    let mapping = mappingAdv check 3
-    let result = lst |> List.mapFold mapping false
-    test <@ result = ([3;3;3;4;5],true) @>
+        let mapping = mappingAdv check 3
+        let result = lst |> List.mapFold mapping false
+        test <@ result = ([3;3;3;4;5],true) @>
 
-let ``Replace when matches predicate2`` () =
-    let lst = [1;2;3;4;5]
-    let map = fun x -> if(x > 3) then 3 else x
-    let result = lst |> Update.collectioni map |> Seq.toList |> List.map (snd >> Update.get) 
-    test <@ result = [3;3;3;4;5] @>
+    let ``Replace when matches predicate2`` () =
+        let lst = [1;2;3;4;5]
+        let map = fun x -> if(x > 3) then 3 else x
+        let result = lst |> Update.collectioni map |> Seq.toList |> List.map (snd >> Update.get) 
+        test <@ result = [3;3;3;4;5] @>
 
-[<Fact>]
-let ``Can create a system landscape`` () =
-    let landscape = SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5Landscape
-    test <@ landscape.Description = "Just a test" @>
+    [<Fact>]
+    let ``Can create a system landscape`` () =
+        let landscape = A.landscape
+        test <@ landscape.Description = "Just a test" @>
 
-[<Fact>]
-let ``Can add a software system to landscape as a view element`` () =
-    let system = SoftwareSystem.init "a-system" "A test system" [] (0,0)
-    let landscape = 
-        SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5Landscape
-        |> SystemLandscapeDiagram.addSoftwareSystem system
-    test <@ landscape.Elements = [SystemViewElement.System system] @>
+    [<Fact>]
+    let ``Can add a software system to landscape as a view element`` () =
+        let system = A.system "a-system"
+        let landscape = 
+            A.landscape
+            |> SystemLandscapeDiagram.addSoftwareSystem system
+        test <@ landscape.Elements = [SystemViewElement.System system] @>
 
 
-[<Fact>]
-let ``Can add a person to landscape as a view element`` () =
-    let person = User.person "a-person" "A test person" [] (0,0)
-    let landscape = 
-        SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5Landscape
-        |> SystemLandscapeDiagram.addPerson person
-    test <@ landscape.Elements = [SystemViewElement.User person] @>
+    [<Fact>]
+    let ``Can add a person to landscape as a view element`` () =
+        let person = A.person "a-person"
+        let landscape = 
+            A.landscape
+            |> SystemLandscapeDiagram.addPerson person
+        test <@ landscape.Elements = [SystemViewElement.User person] @>
 
-[<Fact>]
-let ``Adding an element with same name just replaces it`` () =
-    let person1 = User.person "a-person" "A test person" [] (0,0)
-    let person2 = User.person "a-person" "Another test person" [] (0,0)
-    let landscape = 
-        SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5Landscape
-        |> SystemLandscapeDiagram.addPerson person1
-        |> SystemLandscapeDiagram.addPerson person2
-    test <@ landscape.Elements = [SystemViewElement.User person2] @>
+    [<Fact>]
+    let ``Adding an element with same name just replaces it`` () =
+        let person1 = A.person "a-person"
+        let person2 = A.person "a-person"
+        let landscape = 
+            A.landscape
+            |> SystemLandscapeDiagram.addPerson person1
+            |> SystemLandscapeDiagram.addPerson person2
+        test <@ landscape.Elements = [SystemViewElement.User person2] @>
 
-[<Fact>]
-let ``Adding 2 elements with different name just replaces it`` () =
-    let person1 = User.person "a-person" "A test person" [] (0,0)
-    let person2 = User.person "a-person2" "Another test person" [] (0,0)
-    let landscape = 
-        SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5Landscape
-        |> SystemLandscapeDiagram.addPerson person1
-        |> SystemLandscapeDiagram.addPerson person2
-    test <@ landscape.Elements = [SystemViewElement.User person1;SystemViewElement.User person2] @>
+    [<Fact>]
+    let ``Adding 2 elements with different name just replaces it`` () =
+        let person1 = A.person "a-person"
+        let person2 = A.person "a-person2"
+        let landscape = 
+            A.landscape
+            |> SystemLandscapeDiagram.addPerson person1
+            |> SystemLandscapeDiagram.addPerson person2
+        test <@ landscape.Elements = [SystemViewElement.User person1;SystemViewElement.User person2] @>
 
-[<Fact>]
-let ``Adding a relationship to a system landscape links the elements`` () =
-    let system = SoftwareSystem.init "a-system" "A test system" [] (0,0)
-    let person = User.person "a-person" "A test person" [] (0,0)
-    let relationship = Relationship.between (person  |> Element.User) "Uses" (system |> Element.SoftwareSystem)
-    let landscape = 
-        SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5Landscape
-        |> SystemLandscapeDiagram.addSoftwareSystem system
-        |> SystemLandscapeDiagram.addPerson person
-        |> SystemLandscapeDiagram.addRelationship relationship
-    test <@ landscape.Relationships = [relationship] @>
+    [<Fact>]
+    let ``Adding a relationship to a system landscape links the elements`` () =
+        let system = A.system "a-system"
+        let person = A.person "a-person"
+        let relationship = Relationship.between (person  |> Element.User) "Uses" (system |> Element.SoftwareSystem)
+        let landscape = 
+            A.landscape
+            |> SystemLandscapeDiagram.addSoftwareSystem system
+            |> SystemLandscapeDiagram.addPerson person
+            |> SystemLandscapeDiagram.addRelationship relationship
+        test <@ landscape.Relationships = [relationship] @>
 
-[<Fact>]
-let ``Adding 2 relationships to a system landscape does not result in duplicates`` () =
-    let system = SoftwareSystem.init "a-system" "A test system" [] (0,0)
-    let person = User.person "a-person" "A test person" [] (0,0)
-    let relationship1 = Relationship.between (person|> Element.User) "Uses" (system |> Element.SoftwareSystem)
-    let relationship2 = Relationship.between (person|> Element.User) "Uses" (system |> Element.SoftwareSystem)
-    let landscape = 
-        SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5Landscape
-        |> SystemLandscapeDiagram.addSoftwareSystem system
-        |> SystemLandscapeDiagram.addPerson person
-        |> SystemLandscapeDiagram.addRelationship relationship1
-        |> SystemLandscapeDiagram.addRelationship relationship2
-    test <@ List.length landscape.Relationships = List.length [relationship1] @>
+    [<Fact>]
+    let ``Adding 2 relationships to a system landscape does not result in duplicates`` () =
+        let system = A.system "a-system"
+        let person = A.person "a-person"
+        let relationship1 = Relationship.between (person|> Element.User) "Uses" (system |> Element.SoftwareSystem)
+        let relationship2 = Relationship.between (person|> Element.User) "Uses" (system |> Element.SoftwareSystem)
+        let landscape = 
+            A.landscape
+            |> SystemLandscapeDiagram.addSoftwareSystem system
+            |> SystemLandscapeDiagram.addPerson person
+            |> SystemLandscapeDiagram.addRelationship relationship1
+            |> SystemLandscapeDiagram.addRelationship relationship2
+        test <@ List.length landscape.Relationships = List.length [relationship1] @>
 
 // ===================================================    
 // {
