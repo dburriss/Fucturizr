@@ -1,0 +1,8 @@
+group Test
+    Microsoft.NET.Test.Sdk
+    Unquote
+    xunit
+    xunit.runner.visualstudio
+    System.ValueTuple
+    dotnet-xunit
+    FSharp.Core
