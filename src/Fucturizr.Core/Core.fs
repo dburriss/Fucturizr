@@ -110,7 +110,7 @@ and ComponentElement = {
 }
 
 type Element =
-| User of UserElement
+| User of User
 | SoftwareSystem of SoftwareSystemElement
 | Container of ContainerElement
 | Component of ComponentElement
@@ -199,6 +199,8 @@ module Style =
     let defaultSoftwareSystem = element |> withBackground "#1168bd" |> Style.Element
     let softwareSystemDefaults:Style list = [defaultUser;defaultSoftwareSystem]
 
+
+
 [<RequireQualifiedAccess>]
 module User =
     let person name desc tags pos = 
@@ -250,10 +252,16 @@ module SoftwareSystem =
         Containers = []
     }
 
-    let name system =
-        match system with
-        | SystemViewElement.System x -> x.Name
-        | SystemViewElement.User x -> User.name x
+[<RequireQualifiedAccess>]
+module Element =
+    let name (e:Element) =
+        match e with
+        | Element.User x -> User.name x
+        | Element.SoftwareSystem x -> x.Name
+        | Element.Container x -> x.Name
+        | Element.Component x -> x.Name
+
+    let equal (e1:Element) (e2:Element) = (e1 |> name) = (e2 |> name)
 
 [<RequireQualifiedAccess>]
 module Relationship =
@@ -269,6 +277,18 @@ module Relationship =
     // api |> Relationship.``with`` "calls" service
     let ``with`` desc dest src = between src desc dest
 
+    let equal (r1:Relationship) (r2:Relationship) : bool =
+        (Element.equal r1.Source r2.Source) && (Element.equal r1.Destination r2.Destination) && (r1.Description = r2.Description)
+
+[<RequireQualifiedAccess>]
+module SystemViewElement =
+    let name system =
+        match system with
+        | SystemViewElement.System x -> x.Name
+        | SystemViewElement.User x -> User.name x
+
+    let equal s1 s2 = (s1 |> name) = (s2 |> name)    
+
 [<RequireQualifiedAccess>]
 module SystemLandscapeDiagram = 
     let init scope desc size : SystemLandscapeDiagram = 
@@ -278,13 +298,11 @@ module SystemLandscapeDiagram =
             Size = size
             Elements = []
             Relationships = []
-            Styles = Style.softwareSystemDefaults
+            Styles = []//Style.softwareSystemDefaults
         }
-    let private systemNamesMatch a b =
-        (SoftwareSystem.name a) = (SoftwareSystem.name b)
 
     let addElement (element:SystemViewElement) (diagram:SystemLandscapeDiagram) =
-        let update = fun (x) -> if(systemNamesMatch x element) then element else x
+        let update = fun (x) -> if(SystemViewElement.equal element x) then element else x
         let updated = Update.collectioni update (diagram.Elements |> List.toSeq)|> List.ofSeq |> List.map snd
         if(Update.hasReplaced updated) then
             let elements = updated |> List.map Update.get
@@ -298,3 +316,10 @@ module SystemLandscapeDiagram =
 
     let addPerson (user:User) (diagram:SystemLandscapeDiagram) =
         addElement (SystemViewElement.User user) diagram
+
+    let addRelationship (relationship:Relationship) (diagram:SystemLandscapeDiagram) =
+        if(diagram.Relationships |> List.exists (fun x -> Relationship.equal x relationship) |> not) then 
+            let rels = List.append diagram.Relationships [relationship]
+            {diagram with Relationships = rels}
+        else diagram
+  

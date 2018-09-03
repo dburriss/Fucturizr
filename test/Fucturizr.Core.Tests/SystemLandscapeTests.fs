@@ -68,6 +68,31 @@ let ``Adding 2 elements with different name just replaces it`` () =
         |> SystemLandscapeDiagram.addPerson person2
     test <@ landscape.Elements = [SystemViewElement.User person1;SystemViewElement.User person2] @>
 
+[<Fact>]
+let ``Adding a relationship to a system landscape links the elements`` () =
+    let system = SoftwareSystem.init "a-system" "A test system" [] (0,0)
+    let person = User.person "a-person" "A test person" [] (0,0)
+    let relationship = Relationship.between (person  |> Element.User) "Uses" (system |> Element.SoftwareSystem)
+    let landscape = 
+        SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5Landscape
+        |> SystemLandscapeDiagram.addSoftwareSystem system
+        |> SystemLandscapeDiagram.addPerson person
+        |> SystemLandscapeDiagram.addRelationship relationship
+    test <@ landscape.Relationships = [relationship] @>
+
+[<Fact>]
+let ``Adding 2 relationships to a system landscape does not result in duplicates`` () =
+    let system = SoftwareSystem.init "a-system" "A test system" [] (0,0)
+    let person = User.person "a-person" "A test person" [] (0,0)
+    let relationship1 = Relationship.between (person|> Element.User) "Uses" (system |> Element.SoftwareSystem)
+    let relationship2 = Relationship.between (person|> Element.User) "Uses" (system |> Element.SoftwareSystem)
+    let landscape = 
+        SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5Landscape
+        |> SystemLandscapeDiagram.addSoftwareSystem system
+        |> SystemLandscapeDiagram.addPerson person
+        |> SystemLandscapeDiagram.addRelationship relationship1
+        |> SystemLandscapeDiagram.addRelationship relationship2
+    test <@ List.length landscape.Relationships = List.length [relationship1] @>
 
 // ===================================================    
 // {
