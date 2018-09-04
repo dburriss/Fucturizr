@@ -14,6 +14,17 @@ A DSL for f#cking around with [Structurizr](https://c4model.com).
 - [ ] Export to Structurizr.Dgml
 - [ ] Other export formats...
 
+## Sample diagram definition
+
+```fsharp
+let test_diagram = 
+            system_landscape_diagram "a-landscape" "Just a test" Size.A5_Landscape {
+                user (A.person "a-person")
+                system (A.system "a-system")
+                relationship "a-person" "Uses" "a-system"
+        }
+```
+
 ## Links
 
 1. [C4 Diagrams](https://c4model.com/)

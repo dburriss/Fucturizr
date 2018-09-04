@@ -263,6 +263,11 @@ module Element =
 
     let equal (e1:Element) (e2:Element) = (e1 |> name) = (e2 |> name)
 
+    let ofSystemViewElement (src:SystemViewElement) : Element =
+        match src with
+        | SystemViewElement.System el -> Element.SoftwareSystem el
+        | SystemViewElement.User el -> Element.User el
+
 [<RequireQualifiedAccess>]
 module Relationship =
     let between src desc dest = {
@@ -322,8 +327,11 @@ module SystemLandscapeDiagram =
             let rels = List.append diagram.Relationships [relationship]
             {diagram with Relationships = rels}
         else diagram
+
+    let findElementByName name (diagram:SystemLandscapeDiagram) = 
+        diagram.Elements |> List.tryFind (fun x -> (SystemViewElement.name x) = name)
   
-module Builders =
+module DSL =
     type SystemLandscapeDiagramBuilder internal (scope, desc, size) =
         member __.Yield(_) : SystemLandscapeDiagram = 
             SystemLandscapeDiagram.init scope desc size
@@ -339,5 +347,16 @@ module Builders =
         [<CustomOperation("system")>]
         member __.System(diagram, system) : SystemLandscapeDiagram =
             diagram |> SystemLandscapeDiagram.addSoftwareSystem system
+
+        [<CustomOperation("relationship")>]
+        member __.Relationship(diagram, source, description, destination) : SystemLandscapeDiagram =
+            let srcElOpt = diagram |> SystemLandscapeDiagram.findElementByName source
+            let destElOpt = diagram |> SystemLandscapeDiagram.findElementByName destination
+            match srcElOpt,destElOpt with
+            | _,None -> diagram
+            | None,_ -> diagram
+            | Some srcEl, Some destEl ->
+                let relationship = Relationship.between (srcEl |> Element.ofSystemViewElement) description (destEl |> Element.ofSystemViewElement)
+                diagram |> SystemLandscapeDiagram.addRelationship relationship        
 
     let system_landscape_diagram scope desc size = SystemLandscapeDiagramBuilder(scope,desc,size)

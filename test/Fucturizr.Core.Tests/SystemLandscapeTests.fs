@@ -1,8 +1,7 @@
 ﻿namespace Tests
 open System
 module A =
-    
-    open System
+
     open Fucturizr
     let landscape = SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5_Landscape
     let system name = SoftwareSystem.init name (Guid.NewGuid().ToString()) [] (0,0)
@@ -13,7 +12,7 @@ module SystemLandscapeTests =
     open Swensen.Unquote
     open Fucturizr
     open Helper
-    open Builders
+    open DSL
 
     [<Fact>]
     let ``Replace when matches predicate`` () =
@@ -112,9 +111,11 @@ module SystemLandscapeTests =
             system_landscape_diagram "a-landscape" "Just a test" Size.A5_Landscape {
                 user (A.person "a-person")
                 system (A.system "a-system")
+                relationship "a-person" "Uses" "a-system"
         }
 
         test <@ test_diagram.Elements |> List.length = 2 @>
+        test <@ test_diagram.Relationships |> List.length = 1 @>
 
 // ===================================================    
 // {
