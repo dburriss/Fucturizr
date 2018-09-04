@@ -298,7 +298,7 @@ module SystemLandscapeDiagram =
             Size = size
             Elements = []
             Relationships = []
-            Styles = []//Style.softwareSystemDefaults
+            Styles = Style.softwareSystemDefaults
         }
 
     let addElement (element:SystemViewElement) (diagram:SystemLandscapeDiagram) =
@@ -323,3 +323,21 @@ module SystemLandscapeDiagram =
             {diagram with Relationships = rels}
         else diagram
   
+module Builders =
+    type SystemLandscapeDiagramBuilder internal (scope, desc, size) =
+        member __.Yield(_) : SystemLandscapeDiagram = 
+            SystemLandscapeDiagram.init scope desc size
+
+        [<CustomOperation("user")>]
+        member __.Person(diagram, user) : SystemLandscapeDiagram =
+            match user with
+            | User.DesktopApp _ -> diagram |> SystemLandscapeDiagram.addElement (SystemViewElement.User user)
+            | User.Mobile _ -> diagram |> SystemLandscapeDiagram.addElement (SystemViewElement.User user)
+            | User.Person _ -> diagram |> SystemLandscapeDiagram.addPerson (user)
+            | User.WebBrowser _ -> diagram |> SystemLandscapeDiagram.addElement (SystemViewElement.User user)
+            
+        [<CustomOperation("system")>]
+        member __.System(diagram, system) : SystemLandscapeDiagram =
+            diagram |> SystemLandscapeDiagram.addSoftwareSystem system
+
+    let system_landscape_diagram scope desc size = SystemLandscapeDiagramBuilder(scope,desc,size)

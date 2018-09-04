@@ -13,6 +13,7 @@ module SystemLandscapeTests =
     open Swensen.Unquote
     open Fucturizr
     open Helper
+    open Builders
 
     [<Fact>]
     let ``Replace when matches predicate`` () =
@@ -87,6 +88,7 @@ module SystemLandscapeTests =
             |> SystemLandscapeDiagram.addSoftwareSystem system
             |> SystemLandscapeDiagram.addPerson person
             |> SystemLandscapeDiagram.addRelationship relationship
+            
         test <@ landscape.Relationships = [relationship] @>
 
     [<Fact>]
@@ -102,6 +104,17 @@ module SystemLandscapeTests =
             |> SystemLandscapeDiagram.addRelationship relationship1
             |> SystemLandscapeDiagram.addRelationship relationship2
         test <@ List.length landscape.Relationships = List.length [relationship1] @>
+
+    [<Fact>]
+    let ``Using builer constructs diagram`` () =
+        
+        let test_diagram = 
+            system_landscape_diagram "a-landscape" "Just a test" Size.A5_Landscape {
+                user (A.person "a-person")
+                system (A.system "a-system")
+        }
+
+        test <@ test_diagram.Elements |> List.length = 2 @>
 
 // ===================================================    
 // {
