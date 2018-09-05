@@ -4,6 +4,7 @@ open Helper
 open System
 open System
 open Newtonsoft.Json.Linq
+open Newtonsoft.Json
 type Tag = string
 
 type Position = int * int
@@ -369,6 +370,7 @@ module Json =
     
     open Newtonsoft.Json
     open Newtonsoft.Json.Linq
+    open Newtonsoft.Json.Serialization
     open Microsoft.FSharp.Reflection
 
     type JComponent = {
@@ -399,6 +401,13 @@ module Json =
         Containers: JContainer[]
     }
 
+    type JSystemLandscape = {
+        Type:string
+        Scope:string
+        Description:string
+        Size:string
+        Elements:JElement[]
+    }
 
     let private toString (x:'a) = 
         match FSharpValue.GetUnionFields(x, typeof<'a>) with
@@ -423,6 +432,10 @@ module Json =
             Position = userEl.Position |> positionToString
             Containers = [||]
         }
+    let private serializerSettings = 
+        let s = JsonSerializerSettings()
+        s.ContractResolver <- new CamelCasePropertyNamesContractResolver()
+        s
     let private serializeSystemLandscapeDiagram (diagram:SystemLandscapeDiagram) =
         
         let toJElement (el:SystemViewElement) : JElement =
@@ -443,16 +456,14 @@ module Json =
                 | User.Person y -> userElToJElement y
                 | User.WebBrowser y -> userElToJElement y
 
-        let jElements = JArray.FromObject(diagram.Elements |> List.map toJElement |> List.toArray)
-        let j = new JObject(
-                        JProperty("type", "System Landscape"),
-                        JProperty("scope", diagram.Scope),
-                        JProperty("description", diagram.Description),
-                        JProperty("size", toString diagram.Size),
-                        JProperty("elements", jElements)
-                    )
-
-        j.ToString(Formatting.None)
+        let data : JSystemLandscape = {
+            Type = "System Landscape"
+            Scope = diagram.Scope
+            Description = diagram.Description
+            Size = diagram.Size |> toString
+            Elements = diagram.Elements |> List.map toJElement |> List.toArray
+        }
+        JsonConvert.SerializeObject(data, serializerSettings)
     let serialize (diagram:Diagram) =
         match diagram with
         | Diagram.SystemLandscape d -> serializeSystemLandscapeDiagram d
