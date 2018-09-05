@@ -2,6 +2,10 @@
 
 A DSL for f#cking around with [Structurizr](https://c4model.com).
 
+[![Build status](https://ci.appveyor.com/api/projects/status/05drr0dq7omoru07?svg=true)](https://ci.appveyor.com/project/dburriss/Fucturizr)
+[![MyGet CI](https://img.shields.io/myget/dburriss-ci/vpre/Fucturizr.Core.svg)](http://myget.org/gallery/dburriss-ci)
+[![NuGet CI](https://img.shields.io/nuget/v/Fucturizr.Core.svg)](https://www.nuget.org/packages/Fucturizr.Core/)
+
 ## Features
 
 - [ ] Types to describe diagrams

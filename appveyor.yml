@@ -1,5 +1,5 @@
 os: Visual Studio 2017
-version: 1.0.{build}
+version: 0.0.{build}
 dotnet_csproj:
   patch: true
   file: '**\*.csproj;**\*.props;**\*.fsproj;**\*.xml'
