@@ -1,0 +1,28 @@
+version: 1.0.{build}
+build:
+  verbosity: minimal
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj;**\*.props;**\*.fsproj;**\*.xml'
+  version: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+deploy:  
+- provider: NuGet
+  server: https://www.myget.org/F/dburriss-ci/api/v2/package
+  api_key:
+    secure: 'Rx7T4w1rjWYdQyNk7wKBOjylk11kMKhd8QfVnjbLdTNr+HJwDIDegUzqb5AXNWmr'
+  skip_symbols: true
+  on:
+    branch: master
+  artifact: /.*\.nupkg/
+- provider: NuGet
+  name: production
+  api_key:
+    secure: '7VpK8Gvri1c8bMEUDum0hpv8zZ66qMzoOsJaiKX8W5M0R/qj8Y6T+YD7N0U04RM0'
+  on:
+    branch: master
+    appveyor_repo_tag: true
+  artifact: /.*\.nupkg/

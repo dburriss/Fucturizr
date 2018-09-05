@@ -2,6 +2,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.0.1</Version>
+    <Authors>Devon Burriss</Authors>
+    <Product />
+    <Description>A fsharp DSL for working with Structurizr diagrams</Description>
+    <PackageLicenseUrl>https://github.com/dburriss/Fucturizr/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/dburriss/Fucturizr</PackageProjectUrl>
+    <Copyright>https://github.com/dburriss/Fucturizr/blob/master/LICENSE</Copyright>
+    <RepositoryUrl>https://github.com/dburriss/Fucturizr</RepositoryUrl>
+    <PackageTags>DSL architecture diagrams visualization</PackageTags>
+    <PackageReleaseNotes>0.0.1 
+Only supports landscape diagram</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Update.fs" />
