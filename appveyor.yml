@@ -1,9 +1,5 @@
 os: Visual Studio 2017
 version: 1.0.{build}
-install:  
-- ps: .\install.ps1
-build:
-  verbosity: minimal
 dotnet_csproj:
   patch: true
   file: '**\*.csproj;**\*.props;**\*.fsproj;**\*.xml'
@@ -12,6 +8,14 @@ dotnet_csproj:
   assembly_version: '{version}'
   file_version: '{version}'
   informational_version: '{version}'
+init:
+  - cmd: git config --global core.autocrlf true
+install:  
+  - ps: .\install.ps1
+before_build:
+  - cmd: dotnet --version
+build_script:
+  - cmd: dotnet pack -c Release
 deploy:  
 - provider: NuGet
   server: https://www.myget.org/F/dburriss-ci/api/v2/package
