@@ -20,6 +20,10 @@ build_script:
   - cmd: dotnet test -c Release --no-build
   - cmd: cd ../../
   - cmd: dotnet pack -c Release --no-build
+artifacts: 
+  - path: 'src\**\*.nupkg'
+    name: Fucturizr.Core
+    type: NuGetPackage
 deploy:  
 - provider: NuGet
   server: https://www.myget.org/F/dburriss-ci/api/v2/package
@@ -29,7 +33,6 @@ deploy:
   on:
     branch: master
     appveyor_repo_tag: false
-  artifact: /.*\.nupkg/
 - provider: NuGet
   name: production
   api_key:
@@ -37,4 +40,3 @@ deploy:
   on:
     branch: master
     appveyor_repo_tag: true
-  artifact: /.*\.nupkg/
