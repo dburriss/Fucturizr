@@ -27,7 +27,7 @@ let contract_management_landscape_diagram =
     }
 ```
 
-This results in [the following json](/examples/system-landscape.json) that can then be [used to generate] the landscape diagram.
+This results in [the following json](/examples/system-landscape.json) that can then be [used to generate](https://structurizr.com/express?src=https://raw.githubusercontent.com/dburriss/Fucturizr/master/examples/system-landscape.json) the landscape diagram.
 
 ![Contract Management System Landscape Diagram](/assets/contract-management-landscape.png)
 
