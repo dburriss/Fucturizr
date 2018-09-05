@@ -1,3 +1,4 @@
+os: Visual Studio 2017
 version: 1.0.{build}
 build:
   verbosity: minimal
@@ -17,6 +18,7 @@ deploy:
   skip_symbols: true
   on:
     branch: master
+    appveyor_repo_tag: false
   artifact: /.*\.nupkg/
 - provider: NuGet
   name: production

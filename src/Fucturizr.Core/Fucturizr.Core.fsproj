@@ -11,8 +11,9 @@
     <Copyright>https://github.com/dburriss/Fucturizr/blob/master/LICENSE</Copyright>
     <RepositoryUrl>https://github.com/dburriss/Fucturizr</RepositoryUrl>
     <PackageTags>DSL architecture diagrams visualization</PackageTags>
-    <PackageReleaseNotes>0.0.1 
+    <PackageReleaseNotes>0.0 
 Only supports landscape diagram</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Update.fs" />
