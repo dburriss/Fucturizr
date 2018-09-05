@@ -6,3 +6,5 @@ group Test
     System.ValueTuple
     dotnet-xunit
     FSharp.Core
+    Newtonsoft.Json
+    

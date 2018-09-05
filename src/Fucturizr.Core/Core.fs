@@ -1,6 +1,9 @@
 namespace Fucturizr
 
 open Helper
+open System
+open System
+open Newtonsoft.Json.Linq
 type Tag = string
 
 type Position = int * int
@@ -360,3 +363,97 @@ module DSL =
                 diagram |> SystemLandscapeDiagram.addRelationship relationship        
 
     let system_landscape_diagram scope desc size = SystemLandscapeDiagramBuilder(scope,desc,size)
+
+[<RequireQualifiedAccess>]
+module Json =
+    
+    open Newtonsoft.Json
+    open Newtonsoft.Json.Linq
+    open Microsoft.FSharp.Reflection
+
+    type JComponent = {
+        Type:string
+        Name:string
+        Description:string
+        Technology:string
+        Tags:string
+        Position:string
+    }
+
+    type JContainer = {
+        Type:string
+        Name:string
+        Description:string
+        Technology:string
+        Tags:string
+        Position:string
+        Components: JComponent[]
+    }
+
+    type JElement = {
+        Type:string
+        Name:string
+        Description:string
+        Tags:string
+        Position:string
+        Containers: JContainer[]
+    }
+
+
+    let private toString (x:'a) = 
+        match FSharpValue.GetUnionFields(x, typeof<'a>) with
+        | case, _ -> case.Name
+
+    let private fromString<'a> (s:string) =
+        match FSharpType.GetUnionCases typeof<'a> |> Array.filter (fun case -> case.Name = s) with
+        |[|case|] -> Some(FSharpValue.MakeUnion(case,[||]) :?> 'a)
+        |_ -> None
+    
+    let private positionToString ((x,y):Position) =
+        sprintf "%i,%i" x y
+    
+    let private tagsToString (tags:Tag list) = 
+        tags |> List.fold (+) "," |> (fun s -> s.Substring(0, s.Length - 1))
+    let private userElToJElement (userEl:UserElement) : JElement =
+        {
+            Type = "Person"
+            Name = userEl.Name
+            Description = userEl.Description
+            Tags = userEl.Tags |> tagsToString
+            Position = userEl.Position |> positionToString
+            Containers = [||]
+        }
+    let private serializeSystemLandscapeDiagram (diagram:SystemLandscapeDiagram) =
+        
+        let toJElement (el:SystemViewElement) : JElement =
+            match el with
+            | SystemViewElement.System x -> 
+                {
+                    Type = "Software System"
+                    Name = x.Name
+                    Description = x.Description
+                    Tags = x.Tags |> tagsToString
+                    Position = x.Position |> positionToString
+                    Containers = [||]
+                }
+            | SystemViewElement.User x -> 
+                match x with
+                | User.DesktopApp y -> userElToJElement y
+                | User.Mobile y -> userElToJElement y
+                | User.Person y -> userElToJElement y
+                | User.WebBrowser y -> userElToJElement y
+
+        let jElements = JArray.FromObject(diagram.Elements |> List.map toJElement |> List.toArray)
+        let j = new JObject(
+                        JProperty("type", "System Landscape"),
+                        JProperty("scope", diagram.Scope),
+                        JProperty("description", diagram.Description),
+                        JProperty("size", toString diagram.Size),
+                        JProperty("elements", jElements)
+                    )
+
+        j.ToString(Formatting.None)
+    let serialize (diagram:Diagram) =
+        match diagram with
+        | Diagram.SystemLandscape d -> serializeSystemLandscapeDiagram d
+        | _ -> failwith "NotImplemented"

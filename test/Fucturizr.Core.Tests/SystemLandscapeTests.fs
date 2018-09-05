@@ -1,44 +1,26 @@
 ﻿namespace Tests
-open System
+
 module A =
 
+    open System
     open Fucturizr
-    let landscape = SystemLandscapeDiagram.init "a-landscape" "Just a test" Size.A5_Landscape
+    let landscape = SystemLandscapeDiagram.init "a-landscape" "A test description" Size.A5_Landscape
     let system name = SoftwareSystem.init name (Guid.NewGuid().ToString()) [] (0,0)
     let person name = User.person name (Guid.NewGuid().ToString()) [] (0,0)
+
 module SystemLandscapeTests =
 
     open Xunit
     open Swensen.Unquote
-    open Fucturizr
-    open Helper
+    open Fucturizr    
     open DSL
-
-    [<Fact>]
-    let ``Replace when matches predicate`` () =
-        let lst = [1;2;3;4;5]
-        let check value existing = value < existing
-        let mappingAdv predicate newValue state listElement =
-            let c = Update.define predicate newValue listElement
-            let s = (Update.isReplaced c) || state
-            let v = Update.get c
-            let r = (v, s)
-            r
-
-        let mapping = mappingAdv check 3
-        let result = lst |> List.mapFold mapping false
-        test <@ result = ([3;3;3;4;5],true) @>
-
-    let ``Replace when matches predicate2`` () =
-        let lst = [1;2;3;4;5]
-        let map = fun x -> if(x > 3) then 3 else x
-        let result = lst |> Update.collectioni map |> Seq.toList |> List.map (snd >> Update.get) 
-        test <@ result = [3;3;3;4;5] @>
+    open Newtonsoft.Json
+    open Newtonsoft.Json.Linq
 
     [<Fact>]
     let ``Can create a system landscape`` () =
         let landscape = A.landscape
-        test <@ landscape.Description = "Just a test" @>
+        test <@ landscape.Description = "A test description" @>
 
     [<Fact>]
     let ``Can add a software system to landscape as a view element`` () =
@@ -116,6 +98,47 @@ module SystemLandscapeTests =
 
         test <@ test_diagram.Elements |> List.length = 2 @>
         test <@ test_diagram.Relationships |> List.length = 1 @>
+
+    let stringPropertyContains (property:string) (value:string) (j:JObject) = 
+        let jp = j.Property(property)
+        if(isNull jp) then failwithf "%s was not found in %s" property (j.ToString(Formatting.Indented))
+        else jp.Value.ToString(Formatting.None).Contains(value)
+    
+    [<Fact>]
+    let ``Serialize landscape diagram serializes diagram data`` () =
+        
+        let test_diagram = 
+            system_landscape_diagram "a-landscape" "A test description" Size.A5_Landscape {
+                user (A.person "a-person")
+                system (A.system "a-system")
+                relationship "a-person" "Uses" "a-system"
+        }
+        let json = Json.serialize (Diagram.SystemLandscape test_diagram)
+        let j = JObject.Parse(json)
+        test <@ j |> stringPropertyContains "type" "System Landscape" @> 
+        test <@ j |> stringPropertyContains "scope" "a-landscape" @> 
+        test <@ j |> stringPropertyContains "description" "A test description" @>
+        test <@ j |> stringPropertyContains "size" "A5_Landscape" @>
+
+    let getElements (property:string) (j:JObject) = 
+        let jp = j.Property(property)
+        if(isNull jp) then failwithf "%s was not found in %s" property (j.ToString(Formatting.Indented))
+        else (jp.Value :?> JArray).AsJEnumerable() |> Seq.map (fun x -> x.ToObject<Json.JElement>())
+
+    [<Fact>]
+    let ``Serialize landscape diagram serializes diagram elements`` () =
+        
+        let test_diagram = 
+            system_landscape_diagram "a-landscape" "A test description" Size.A5_Landscape {
+                user (A.person "a-person")
+                system (A.system "a-system")
+                relationship "a-person" "Uses" "a-system"
+        }
+        let json = Json.serialize (Diagram.SystemLandscape test_diagram)
+        let j = JObject.Parse(json)
+        let xs = j |> getElements "elements"
+        test <@ xs |> Seq.length = 2 @>
+        test <@ xs |> Seq.head |> (fun x -> x.Name = "a-person") @>
 
 // ===================================================    
 // {
