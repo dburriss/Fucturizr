@@ -1,0 +1,63 @@
+{
+  "type": "System Landscape",
+  "scope": "Contract Management",
+  "description": "A test description",
+  "size": "A5_Landscape",
+  "elements": [
+    {
+      "type": "Person",
+      "name": "Buyer",
+      "description": "Negotiates policies with suppliers and orders...",
+      "tags": "",
+      "position": "730,230",
+      "containers": []
+    },
+    {
+      "type": "Software System",
+      "name": "Acme Contract Management System",
+      "description": "Manages contracts negotiated with suppliers",
+      "tags": "Internal,",
+      "position": "705,830",
+      "containers": []
+    }
+  ],
+  "relationships": [
+    {
+      "source": "Buyer",
+      "description": "Captures contracts",
+      "technology": "",
+      "destination": "Acme Contract Management System",
+      "tags": "",
+      "order": "0",
+      "vertices": []
+    }
+  ],
+  "styles": [
+    {
+      "type": "element",
+      "description": "true",
+      "tag": "Person",
+      "width": "",
+      "height": "",
+      "background": "#08427b",
+      "color": "#ffffff",
+      "fontSize": "",
+      "opacity": "",
+      "shape": "Person",
+      "metadata": "true"
+    },
+    {
+      "type": "element",
+      "description": "true",
+      "tag": "Element",
+      "width": "",
+      "height": "",
+      "background": "#1168bd",
+      "color": "#ffffff",
+      "fontSize": "",
+      "opacity": "",
+      "shape": "Box",
+      "metadata": "true"
+    }
+  ]
+}

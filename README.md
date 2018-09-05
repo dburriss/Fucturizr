@@ -16,14 +16,20 @@ A DSL for f#cking around with [Structurizr](https://c4model.com).
 
 ## Sample diagram definition
 
+Below is the definition of a landscape diagram. See the [script file example](/examples/system-landscape.fsx) of using this to generate the Structurizr json.
+
 ```fsharp
-let test_diagram = 
-  system_landscape_diagram "a-landscape" "Just a test" Size.A5_Landscape {
-    user (A.person "a-person")
-    system (A.system "a-system")
-    relationship "a-person" "Uses" "a-system"
-  }
+let contract_management_landscape_diagram =
+    system_landscape_diagram "Contract Management" "A test description" Size.A5_Landscape {
+        user (A.person "Buyer" "Negotiates policies with suppliers and orders..." (730,230))
+        system (A.system "Acme Contract Management System" "Manages contracts negotiated with suppliers" (705,830))
+        relationship "Buyer" "Captures contracts" "Acme Contract Management System"
+    }
 ```
+
+This results in [the following json](/examples/system-landscape.json) that can then be [used to generate] the landscape diagram.
+
+![Contract Management System Landscape Diagram](/assets/contract-management-landscape.png)
 
 ## Links
 
