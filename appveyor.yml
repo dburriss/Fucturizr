@@ -1,5 +1,7 @@
 os: Visual Studio 2017
 version: 1.0.{build}
+install:  
+- ps: .\install.ps1
 build:
   verbosity: minimal
 dotnet_csproj:
