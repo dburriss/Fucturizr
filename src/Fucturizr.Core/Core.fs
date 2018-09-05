@@ -30,7 +30,6 @@ type Size =
 type ColorHex = string
 
 type Shape =
-| Default
 | Box
 | RoundedBox
 | Circle
@@ -41,8 +40,8 @@ type Shape =
 | Cylinder
 | Pipe
 | WebBrowser
-| MobileApp
-| DesktopApp
+| MobileDevicePortrait
+| MobileDeviceLandscape
 | Robot
 
 type ElementStyle = {
@@ -56,7 +55,7 @@ type ElementStyle = {
     Shape:Shape    
 }
 
-type Routing = Dashed | Orthogonal
+type Routing = Direct | Orthogonal
 
 type RelationshipStyle = {
     Tag:Tag
@@ -187,14 +186,14 @@ module Core =
 
 module Style =
     let element = {
-            Tag = ""
+            Tag = "Element"
             Width = 0
             Height = 0
             Background = "#000000"
             Color = "#ffffff"
             FontSize = 0
             Opacity = 0
-            Shape = Shape.Default  
+            Shape = Shape.Box  
         }
     let withColor color (style:ElementStyle) = { style with Color = color }
     let withBackground color (style:ElementStyle) = { style with Background = color }
@@ -336,6 +335,8 @@ module SystemLandscapeDiagram =
         diagram.Elements |> List.tryFind (fun x -> (SystemViewElement.name x) = name)
   
 module DSL =
+    open System.IO
+
     type SystemLandscapeDiagramBuilder internal (scope, desc, size) =
         member __.Yield(_) : SystemLandscapeDiagram = 
             SystemLandscapeDiagram.init scope desc size
@@ -365,11 +366,21 @@ module DSL =
 
     let system_landscape_diagram scope desc size = SystemLandscapeDiagramBuilder(scope,desc,size)
 
+    let save path json =
+        let folder = Path.GetDirectoryName(path)
+        if(String.IsNullOrWhiteSpace(folder) |> not && Directory.Exists(folder) |> not) then 
+            Directory.CreateDirectory(folder) |> ignore
+        File.WriteAllText(path, json) |> ignore
+
+    [<RequireQualifiedAccess>]
+    module A =
+        let system name desc pos = SoftwareSystem.init name desc ["Internal"] pos
+        let external_system name desc pos = SoftwareSystem.init name desc [] pos
+        let person name desc pos = User.person name desc [] pos
+
 [<RequireQualifiedAccess>]
 module Json =
-    
-    open Newtonsoft.Json
-    open Newtonsoft.Json.Linq
+
     open Newtonsoft.Json.Serialization
     open Microsoft.FSharp.Reflection
 
@@ -401,12 +412,40 @@ module Json =
         Containers: JContainer[]
     }
 
+    type JRelationship = {
+        Source:string
+        Description:string
+        Technology:string
+        Destination:string
+        Tags:string
+        Order:string
+        Vertices:string[]
+    }
+
+    type JStyle = {
+        Type:string
+        Description:string
+        Tag:string
+        Width:string
+        Height:string
+        Background:string
+        Color:string
+        FontSize:string
+        Opacity:string
+        Shape:string
+        Routing:string
+        Dashed:string
+        Metadata:string
+    }
+
     type JSystemLandscape = {
         Type:string
         Scope:string
         Description:string
         Size:string
         Elements:JElement[]
+        Relationships:JRelationship[]
+        Styles:JStyle[]
     }
 
     let private toString (x:'a) = 
@@ -417,12 +456,16 @@ module Json =
         match FSharpType.GetUnionCases typeof<'a> |> Array.filter (fun case -> case.Name = s) with
         |[|case|] -> Some(FSharpValue.MakeUnion(case,[||]) :?> 'a)
         |_ -> None
-    
+
+    let intToString i = if(i = 0) then "" else i |> string
+
     let private positionToString ((x,y):Position) =
         sprintf "%i,%i" x y
     
     let private tagsToString (tags:Tag list) = 
-        tags |> List.fold (+) "," |> (fun s -> s.Substring(0, s.Length - 1))
+        if(tags |> List.isEmpty) then "" 
+        else tags |> List.fold (fun r s -> r + s + ",") ""
+
     let private userElToJElement (userEl:UserElement) : JElement =
         {
             Type = "Person"
@@ -432,10 +475,60 @@ module Json =
             Position = userEl.Position |> positionToString
             Containers = [||]
         }
+
+    let private toJRelationship (r:Relationship) : JRelationship =
+        {
+            Source = r.Source |> Element.name
+            Description = r.Description
+            Technology = r.Technology
+            Destination = r.Destination |> Element.name
+            Tags = r.Tags |> tagsToString
+            Order = r.Order |> string
+            Vertices = r.Vertices |> List.map positionToString |> List.toArray
+        }
+
+    let private toJStyle (style:Style) : JStyle =
+        match style with
+        | Style.Element s -> 
+            {
+                Type = "element"
+                Description = "true"
+                Tag = s.Tag
+                Width = s.Width |> intToString
+                Height = s.Height |> intToString
+                Background = s.Background
+                Color = s.Color
+                FontSize = s.FontSize |> intToString
+                Opacity = s.Opacity |> intToString
+                Shape = s.Shape |> toString
+                Routing = null
+                Dashed = null
+                Metadata = "true"
+            }
+        | Style.Relationship s ->
+            {
+                Type = "element"
+                Description = "true"
+                Tag = s.Tag
+                Width = s.Width |> intToString
+                Height = s.Height |> intToString
+                Background = null
+                Color = s.Color
+                FontSize = s.FontSize |> string
+                Opacity = s.Opacity |> intToString
+                Shape = null
+                Routing = s.Routing |> toString
+                Dashed = s.Dashed |> string
+                Metadata = "true"
+            }     
+        
+
     let private serializerSettings = 
         let s = JsonSerializerSettings()
         s.ContractResolver <- new CamelCasePropertyNamesContractResolver()
+        s.NullValueHandling <- NullValueHandling.Ignore
         s
+
     let private serializeSystemLandscapeDiagram (diagram:SystemLandscapeDiagram) =
         
         let toJElement (el:SystemViewElement) : JElement =
@@ -462,8 +555,11 @@ module Json =
             Description = diagram.Description
             Size = diagram.Size |> toString
             Elements = diagram.Elements |> List.map toJElement |> List.toArray
+            Relationships = diagram.Relationships |> List.map toJRelationship |> List.toArray
+            Styles = diagram.Styles |> List.map toJStyle |> List.toArray
         }
-        JsonConvert.SerializeObject(data, serializerSettings)
+        JsonConvert.SerializeObject(data, Formatting.Indented, serializerSettings)
+
     let serialize (diagram:Diagram) =
         match diagram with
         | Diagram.SystemLandscape d -> serializeSystemLandscapeDiagram d

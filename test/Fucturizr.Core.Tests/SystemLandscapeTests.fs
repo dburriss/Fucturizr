@@ -5,8 +5,6 @@ module A =
     open System
     open Fucturizr
     let landscape = SystemLandscapeDiagram.init "a-landscape" "A test description" Size.A5_Landscape
-    let system name = SoftwareSystem.init name (Guid.NewGuid().ToString()) [] (0,0)
-    let person name = User.person name (Guid.NewGuid().ToString()) [] (0,0)
 
 module SystemLandscapeTests =
 
@@ -24,7 +22,7 @@ module SystemLandscapeTests =
 
     [<Fact>]
     let ``Can add a software system to landscape as a view element`` () =
-        let system = A.system "a-system"
+        let system = A.system "a-system" "A test description" (0,0)
         let landscape = 
             A.landscape
             |> SystemLandscapeDiagram.addSoftwareSystem system
@@ -33,7 +31,7 @@ module SystemLandscapeTests =
 
     [<Fact>]
     let ``Can add a person to landscape as a view element`` () =
-        let person = A.person "a-person"
+        let person = A.person "a-person" "A test description" (0,0)
         let landscape = 
             A.landscape
             |> SystemLandscapeDiagram.addPerson person
@@ -41,8 +39,8 @@ module SystemLandscapeTests =
 
     [<Fact>]
     let ``Adding an element with same name just replaces it`` () =
-        let person1 = A.person "a-person"
-        let person2 = A.person "a-person"
+        let person1 = A.person "a-person" "A person" (0,0)
+        let person2 = A.person "a-person" "Another person" (0,0)
         let landscape = 
             A.landscape
             |> SystemLandscapeDiagram.addPerson person1
@@ -51,8 +49,8 @@ module SystemLandscapeTests =
 
     [<Fact>]
     let ``Adding 2 elements with different name just replaces it`` () =
-        let person1 = A.person "a-person"
-        let person2 = A.person "a-person2"
+        let person1 = A.person "a-person" "A test description" (0,0)
+        let person2 = A.person "a-person2" "A test description" (0,0)
         let landscape = 
             A.landscape
             |> SystemLandscapeDiagram.addPerson person1
@@ -61,8 +59,8 @@ module SystemLandscapeTests =
 
     [<Fact>]
     let ``Adding a relationship to a system landscape links the elements`` () =
-        let system = A.system "a-system"
-        let person = A.person "a-person"
+        let system = A.system "a-system" "A test description" (0,0)
+        let person = A.person "a-person" "A test description" (0,0)
         let relationship = Relationship.between (person  |> Element.User) "Uses" (system |> Element.SoftwareSystem)
         let landscape = 
             A.landscape
@@ -74,8 +72,8 @@ module SystemLandscapeTests =
 
     [<Fact>]
     let ``Adding 2 relationships to a system landscape does not result in duplicates`` () =
-        let system = A.system "a-system"
-        let person = A.person "a-person"
+        let system = A.system "a-system" "A test description" (0,0)
+        let person = A.person "a-person" "A test description" (0,0)
         let relationship1 = Relationship.between (person|> Element.User) "Uses" (system |> Element.SoftwareSystem)
         let relationship2 = Relationship.between (person|> Element.User) "Uses" (system |> Element.SoftwareSystem)
         let landscape = 
@@ -91,8 +89,8 @@ module SystemLandscapeTests =
         
         let test_diagram = 
             system_landscape_diagram "a-landscape" "Just a test" Size.A5_Landscape {
-                user (A.person "a-person")
-                system (A.system "a-system")
+                user (A.person "a-person" "A test description" (0,0))
+                system (A.system "a-system" "A test description" (0,0))
                 relationship "a-person" "Uses" "a-system"
         }
 
@@ -104,15 +102,16 @@ module SystemLandscapeTests =
         if(isNull jp) then failwithf "%s was not found in %s" property (j.ToString(Formatting.Indented))
         else jp.Value.ToString(Formatting.None).Contains(value)
     
-    [<Fact>]
-    let ``Serialize landscape diagram serializes diagram data`` () =
-        
-        let test_diagram = 
+    let test_diagram = 
             system_landscape_diagram "a-landscape" "A test description" Size.A5_Landscape {
-                user (A.person "a-person")
-                system (A.system "a-system")
+                user (A.person "a-person" "A test description" (0,0))
+                system (A.system "a-system" "A test description" (0,0))
                 relationship "a-person" "Uses" "a-system"
         }
+
+    [<Fact>]
+    let ``Serialize landscape diagram serializes diagram data`` () =
+
         let json = Json.serialize (Diagram.SystemLandscape test_diagram)
         let j = JObject.Parse(json)
         test <@ j |> stringPropertyContains "type" "System Landscape" @> 
@@ -120,25 +119,51 @@ module SystemLandscapeTests =
         test <@ j |> stringPropertyContains "description" "A test description" @>
         test <@ j |> stringPropertyContains "size" "A5_Landscape" @>
 
-    let getElements (property:string) (j:JObject) = 
+    let getElements(j:JObject) = 
+        let property = "elements"
         let jp = j.Property(property)
         if(isNull jp) then failwithf "%s was not found in %s" property (j.ToString(Formatting.Indented))
         else (jp.Value :?> JArray).AsJEnumerable() |> Seq.map (fun x -> x.ToObject<Json.JElement>())
 
     [<Fact>]
     let ``Serialize landscape diagram serializes diagram elements`` () =
-        
-        let test_diagram = 
-            system_landscape_diagram "a-landscape" "A test description" Size.A5_Landscape {
-                user (A.person "a-person")
-                system (A.system "a-system")
-                relationship "a-person" "Uses" "a-system"
-        }
+
         let json = Json.serialize (Diagram.SystemLandscape test_diagram)
         let j = JObject.Parse(json)
-        let xs = j |> getElements "elements"
+        let xs = j |> getElements
         test <@ xs |> Seq.length = 2 @>
         test <@ xs |> Seq.head |> (fun x -> x.Name = "a-person") @>
+
+    let getRelationships(j:JObject) = 
+        let property = "relationships"
+        let jp = j.Property(property)
+        if(isNull jp) then failwithf "%s was not found in %s" property (j.ToString(Formatting.Indented))
+        else (jp.Value :?> JArray).AsJEnumerable() |> Seq.map (fun x -> x.ToObject<Json.JRelationship>())
+
+    [<Fact>]
+    let ``Serialize landscape diagram serializes diagram relationships`` () =
+
+        let json = Json.serialize (Diagram.SystemLandscape test_diagram)
+        let j = JObject.Parse(json)
+        let xs = j |> getRelationships
+        test <@ xs |> Seq.length = 1 @>
+        test <@ xs |> Seq.head |> (fun x -> x.Source = "a-person") @>    
+        test <@ xs |> Seq.head |> (fun x -> x.Destination = "a-system") @> 
+        test <@ xs |> Seq.head |> (fun x -> x.Description = "Uses") @>
+
+    let getStyles(j:JObject) = 
+        let property = "styles"
+        let jp = j.Property(property)
+        if(isNull jp) then failwithf "%s was not found in %s" property (j.ToString(Formatting.Indented))
+        else (jp.Value :?> JArray).AsJEnumerable() |> Seq.map (fun x -> x.ToObject<Json.JRelationship>())
+
+    [<Fact>]
+    let ``Serialize landscape diagram serializes diagram styles`` () =
+
+        let json = Json.serialize (Diagram.SystemLandscape test_diagram)
+        let j = JObject.Parse(json)
+        let xs = j |> getStyles
+        test <@ xs |> Seq.length = 2 @>   
 
 // ===================================================    
 // {
