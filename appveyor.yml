@@ -16,7 +16,10 @@ before_build:
   - cmd: dotnet --version
 build_script:
   - cmd: dotnet build -c Release
-  - cmd: dotnet pack -c Release
+  - cmd: cd .\test\Fucturizr.Core.Tests\
+  - cmd: dotnet test -c Release --no-build
+  - cmd: cd ../../
+  - cmd: dotnet pack -c Release --no-build
 deploy:  
 - provider: NuGet
   server: https://www.myget.org/F/dburriss-ci/api/v2/package
