@@ -1,16 +1,22 @@
-#r "../packages/NETStandard.Library/build/netstandard2.0/ref/netstandard.dll"
+//#r "../packages/NETStandard.Library/build/netstandard2.0/ref/netstandard.dll"
 #r "../src/Fucturizr.Core/bin/Debug/netstandard2.0/Fucturizr.Core.dll"
 
 open Fucturizr
 open Fucturizr.DSL
 open System.IO
 
+// example defining before use
+let ``Supplier API`` = A.external_system "Supplier API" "Contains product information and order management" (500,830)
+
 // define diagram
 let contract_management_landscape_diagram =
     system_landscape_diagram "Contract Management" "A test description" Size.A5_Landscape {
+        system ``Supplier API``
         user (A.person "Buyer" "Negotiates policies with suppliers and orders..." (730,230))
         system (A.system "Acme Contract Management System" "Manages contracts negotiated with suppliers" (705,830))
+
         relationship "Buyer" "Captures contracts" "Acme Contract Management System"
+        relationship "Acme Contract Management System" "Gets product data" ``Supplier API``.Name
     }
 
 // Wrap as a Diagram then serialze serialize to json

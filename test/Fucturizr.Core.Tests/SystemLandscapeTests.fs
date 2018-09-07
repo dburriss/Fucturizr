@@ -86,10 +86,10 @@ module SystemLandscapeTests =
 
     [<Fact>]
     let ``Using builer constructs diagram`` () =
-        
+        let ``person`` = A.person "a-person" "A test description" (0,0)
         let test_diagram = 
             system_landscape_diagram "a-landscape" "Just a test" Size.A5_Landscape {
-                user (A.person "a-person" "A test description" (0,0))
+                user ``person``
                 system (A.system "a-system" "A test description" (0,0))
                 relationship "a-person" "Uses" "a-system"
         }

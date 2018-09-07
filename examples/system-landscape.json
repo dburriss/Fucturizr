@@ -5,6 +5,14 @@
   "size": "A5_Landscape",
   "elements": [
     {
+      "type": "Software System",
+      "name": "Supplier API",
+      "description": "Contains product information and order management",
+      "tags": "",
+      "position": "500,830",
+      "containers": []
+    },
+    {
       "type": "Person",
       "name": "Buyer",
       "description": "Negotiates policies with suppliers and orders...",
@@ -27,6 +35,15 @@
       "description": "Captures contracts",
       "technology": "",
       "destination": "Acme Contract Management System",
+      "tags": "",
+      "order": "0",
+      "vertices": []
+    },
+    {
+      "source": "Acme Contract Management System",
+      "description": "Gets product data",
+      "technology": "",
+      "destination": "Supplier API",
       "tags": "",
       "order": "0",
       "vertices": []

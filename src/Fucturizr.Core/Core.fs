@@ -246,7 +246,7 @@ module User =
         | DesktopApp x -> x.Name    
 
 [<RequireQualifiedAccess>]
-module SoftwareSystem =
+module SoftwareSystemElement =
     let init name desc tags pos : SoftwareSystemElement = {
         Name = name
         Description = desc
@@ -374,8 +374,8 @@ module DSL =
 
     [<RequireQualifiedAccess>]
     module A =
-        let system name desc pos = SoftwareSystem.init name desc ["Internal"] pos
-        let external_system name desc pos = SoftwareSystem.init name desc [] pos
+        let system name desc pos = SoftwareSystemElement.init name desc ["Internal"] pos
+        let external_system name desc pos = SoftwareSystemElement.init name desc [] pos
         let person name desc pos = User.person name desc [] pos
 
 [<RequireQualifiedAccess>]
